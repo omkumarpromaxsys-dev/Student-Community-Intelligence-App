@@ -56,7 +56,7 @@ public:
         return subscriptionPlan; 
     }
 
-    string getPassword() {
+    string getStudentPassword() {
         return password;
     }
 
@@ -86,11 +86,11 @@ public:
         cout << "Subscription Plan: " << subscriptionPlan << endl;
     }
 
-    string getID(){
+    string getStudentID(){
         return id;
     }
 
-    string getName(){
+    string getStudentName(){
         return name;
     }
 };
@@ -166,7 +166,7 @@ public:
          return serviceName; 
         }
 
-    string getPassword(){
+    string getProviderPassword(){
         return password;
     }
 
@@ -210,11 +210,11 @@ public:
         cout << endl;
     }
 
-    string getID(){
+    string getProviderID(){
         return id;
     }
 
-    string getName(){
+    string getProviderName(){
         return name;
     }
 };
@@ -237,7 +237,7 @@ public:
 
     void checkStudentAccess(Student &s) {
 
-        cout<<"ID: "<<s.getID()<<" Name: "<<s.getName();
+        cout<<"ID: "<<s.getStudentID()<<" Name: "<<s.getStudentName();
 
         if (s.getIsVerified() && s.getSubscriptionPlan() != "Free") {
             cout << " Student access granted. Available services: ";
@@ -254,7 +254,7 @@ public:
 
     void checkProviderAccess(Provider &p) {
 
-        cout<<"ID: "<<p.getID()<<" Name: "<<p.getName();
+        cout<<"ID: "<<p.getProviderID()<<" Name: "<<p.getProviderName();
 
         if (p.getIsVerified() && p.getIsKYC() && p.getIsSubscribed()) {
             cout << " Provider verified. Services listed: " << p.getServiceName() << endl;
@@ -309,6 +309,30 @@ public:
     string getAdminPassword(){
         return password;
     }
+
+    bool deleteStudentByID(string &studentID) {
+        for (auto it = students.begin(); it != students.end(); ++it) {
+            if (it->getStudentID() == studentID) {
+                students.erase(it);   
+                cout << "Student deleted successfully \n";
+                return true;
+            }
+        }
+        cout << "Student not found\n";
+        return false;
+    }
+
+    bool deleteProviderByID(string &providerID){
+        for (auto it = providers.begin(); it != providers.end(); ++it) {
+        if (it->getProviderID() == providerID) {
+            providers.erase(it);
+            cout << "Provider deleted successfully\n";
+            return true;
+            }
+        }
+        cout << "Provider not found \n";
+        return false;
+    }
  
 };
 
@@ -325,8 +349,8 @@ class System{
         cin >> password;
 
         for (auto &s : admin.getStudents()) {
-            if (s.getID() == id && s.getPassword() == password) {
-                cout << "\nWelcome " << s.getName() << "...!";
+            if (s.getStudentID() == id && s.getStudentPassword() == password) {
+                cout << "\nWelcome " << s.getStudentName() << "...!";
                 admin.checkStudentAccess(s);
                 return;
             }
@@ -347,8 +371,8 @@ class System{
         cin>>password;
 
         for(auto&p: admin.getProviders()){
-            if(p.getID()==id && p.getPassword()==password){
-                cout<<"\nWelcome " <<p.getName()<<"...!";
+            if(p.getProviderID()==id && p.getProviderPassword()==password){
+                cout<<"\nWelcome " <<p.getProviderName()<<"...!";
                 admin.checkProviderAccess(p);
                 return;
             }
@@ -383,12 +407,15 @@ class System{
 
     void adminDashboard() {
     int choice;
+    string id;
     do {
         cout << "\nADMIN DASHBOARD\n";
         cout << "1. Show all students\n";
         cout << "2. Show all providers\n";
         cout << "3. Count students\n";
         cout << "4. Count providers\n";
+        cout << "5. Delete Student\n";
+        cout << "6. Delete Provider\n";
         cout << "0. Logout\n";
         cout << "Enter choice: ";
         cin >> choice;
@@ -405,6 +432,16 @@ class System{
             break;
         case 4:
             admin.countOfProviders();
+            break;
+        case 5:
+            cout<<"Enter Student ID to delete: ";
+            cin>>id;
+            admin.deleteStudentByID(id);
+            break;
+        case 6:
+            cout<<"Enter Provider ID to delete: ";
+            cin>>id;
+            admin.deleteProviderByID(id);
             break;
         case 0:
             cout << "Logging out...\n";
@@ -468,6 +505,7 @@ int main()
 
     Provider p2("P002", "Shinde", "shinde@Foods.com", "8451311265", true, true, {"Mess"}, "Shinde Mess", "PAN456", "GSTIN456", "Kalamba Road", "Behind Promaxsys Office", "Kolhapur", "Maharashtra", "416009", {"Home like food", "Fresh and Hygienic", "Veg/Non-veg"}, true, 1, 0, {"SBI", "Account No: 84651313466", "IFSC: SBI543131"}, "PROV456");
 
+    // admin
     Admin a;
     a.addStudent(s1);
     a.addStudent(s2);
