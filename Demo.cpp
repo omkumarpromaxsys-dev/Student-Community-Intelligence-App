@@ -3,6 +3,10 @@
 #include<string>
 using namespace std;
 
+const string ROLE_STUDENT = "STUDENT";
+const string ROLE_PROVIDER = "PROVIDER";
+const string ROLE_ADMIN = "ADMIN";
+
 class Student
 {
     string id;
@@ -239,7 +243,7 @@ public:
 
         cout<<"ID: "<<s.getStudentID()<<" Name: "<<s.getStudentName();
 
-        if (s.getIsVerified() && s.getSubscriptionPlan() != "Free") {
+        if (s.getIsVerified() && s.getSubscriptionPlan() != "free") {
             cout << " Student access granted. Available services: ";
             for (auto &p : providers) {
                 if (p.getIsVerified() && p.getIsKYC() && p.getIsSubscribed()) {
@@ -336,9 +340,33 @@ public:
  
 };
 
+class AuthToken {
+    string token;
+
+    public:
+        AuthToken(string userId, string role) {
+            token = userId + "|" + role;
+        }
+
+        string getToken() {
+            return token;
+        }
+
+        string getUserId() {
+            return token.substr(0, token.find("|"));
+        }
+
+        string getRole() {
+            return token.substr(token.find("|") + 1);
+        }
+};
+
+
 class System{
 
     Admin &admin;
+
+    AuthToken* currentToken = nullptr;
 
     void studentLogin() {
         string id, password;
@@ -351,7 +379,11 @@ class System{
         for (auto &s : admin.getStudents()) {
             if (s.getStudentID() == id && s.getStudentPassword() == password) {
                 cout << "\nWelcome " << s.getStudentName() << "...!";
+                // admin.checkStudentAccess(s);
+                currentToken = new AuthToken(s.getStudentID(), ROLE_STUDENT);
+                cout << "\nJWT issued for Student\n";
                 admin.checkStudentAccess(s);
+
                 return;
             }
         }
@@ -373,7 +405,11 @@ class System{
         for(auto&p: admin.getProviders()){
             if(p.getProviderID()==id && p.getProviderPassword()==password){
                 cout<<"\nWelcome " <<p.getProviderName()<<"...!";
+                //admin.checkProviderAccess(p);
+                currentToken = new AuthToken(p.getProviderID(), ROLE_PROVIDER);
+                cout << "\nJWT issued for Provider\n";
                 admin.checkProviderAccess(p);
+
                 return;
             }
         }
@@ -396,6 +432,8 @@ class System{
         if(id == admin.getAdminID() && password == admin.getAdminPassword()){
             cout<<"\nWelcome Admin....!";
 
+           currentToken = new AuthToken(admin.getAdminID(), ROLE_ADMIN);
+            cout << "\nJWT issued for Admin\n";
             adminDashboard();
 
         }
@@ -406,6 +444,12 @@ class System{
     }
 
     void adminDashboard() {
+
+    if (!currentToken || currentToken->getRole() != ROLE_ADMIN) {
+    cout << "Unauthorized access\n";
+    return;
+    }
+
     int choice;
     string id;
     do {
@@ -444,6 +488,8 @@ class System{
             admin.deleteProviderByID(id);
             break;
         case 0:
+            delete currentToken;
+            currentToken = nullptr;
             cout << "Logging out...\n";
             break;
         default:
@@ -486,6 +532,51 @@ public:
     }
 
 };
+
+class Bookings {
+    string bookingID;
+    string studentID;
+    string providerID;
+    string serviceName;
+    string status;
+
+public:
+    Bookings(string bid, string sid, string pid, string service){
+        bookingID = bid;
+        studentID = sid;
+        providerID = pid;
+        serviceName = service;
+    }
+        
+    string getBookingID(){ 
+        return bookingID; 
+    }
+
+    string getStudentID(){ 
+        return studentID; 
+    }
+
+    string getProviderID(){ 
+        return providerID; 
+    }
+
+    string getServiceName(){ 
+        return serviceName; 
+    }
+
+    string getStatus(){ 
+        return status; 
+    }
+
+    void cancel() {
+        status = "CANCELLED";
+    }
+
+    void createBookings(string ){
+
+    }
+};
+
 
 int main()
 {
